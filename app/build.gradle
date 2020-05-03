@@ -44,6 +44,7 @@ android {
 
 dependencies {
     implementation(fileTree(dir: 'libs', include: ['*.jar']))
+    implementation(fileTree(dir: 'libs', include: ['*.aar']))
     implementation(Libs.kotlinStdLib)
     implementation(Libs.appCompat)
     implementation(Libs.ktx)
@@ -51,6 +52,8 @@ dependencies {
     implementation(Libs.material)
     implementation(Libs.blend)
     implementation(Libs.magellan)
+    implementation(Libs.coroutines)
+    implementation(Libs.coroutinesAndroid)
     implementation(Libs.dagger)
     kapt(Libs.daggerCompiler)
 

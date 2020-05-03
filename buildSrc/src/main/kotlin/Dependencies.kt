@@ -3,6 +3,7 @@ import Version.androidTestExtVersion
 import Version.appCompatVersion
 import Version.blendVersion
 import Version.constraintLayoutVersion
+import Version.coroutinesVersion
 import Version.daggerVersion
 import Version.dependencyAnalyzerVersion
 import Version.espressoVersion
@@ -28,6 +29,8 @@ object Libs {
 
   val blend = "com.wealthfront:blend:$blendVersion"
   val magellan = "com.wealthfront:magellan:$magellanVersion"
+  val coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
+  val coroutinesAndroid = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
 
   val dependencyAnalyzer = "com.vanniktech:gradle-dependency-graph-generator-plugin:$dependencyAnalyzerVersion"
 
@@ -63,6 +66,7 @@ object Version {
 
   val blendVersion = "0.1.0"
   val magellanVersion = "1.1.0"
+  val coroutinesVersion = "1.3.5"
 
   val appCompatVersion = "1.1.0"
   val ktxVersion = "1.2.0"

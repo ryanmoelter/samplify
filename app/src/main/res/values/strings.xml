@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name">Blend sample app</string>
+  <string name="app_name">Samplify</string>
 
   <string name="nowPlayingAlbumDescription">Album art for current song</string>
 </resources>
