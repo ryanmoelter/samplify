@@ -3,6 +3,7 @@ import Version.androidTestExtVersion
 import Version.appCompatVersion
 import Version.blendVersion
 import Version.constraintLayoutVersion
+import Version.daggerVersion
 import Version.dependencyAnalyzerVersion
 import Version.espressoVersion
 import Version.javaInject
@@ -35,6 +36,8 @@ object Libs {
   val ktx = "androidx.core:core-ktx:$ktxVersion"
   val constraintLayout = "androidx.constraintlayout:constraintlayout:$constraintLayoutVersion"
   val material = "com.google.android.material:material:$materialVersion"
+  val dagger = "com.google.dagger:dagger:$daggerVersion"
+  val daggerCompiler = "com.google.dagger:dagger-compiler:$daggerVersion"
   val inject = "javax.inject:javax.inject:$javaInject"
   val jsr305 = "com.google.code.findbugs:jsr305:$jsrVersion"
   val testCore = "androidx.test:core:$testSupportVersion"
@@ -60,10 +63,12 @@ object Version {
 
   val blendVersion = "0.1.0"
   val magellanVersion = "1.1.0"
+
   val appCompatVersion = "1.1.0"
   val ktxVersion = "1.2.0"
   val constraintLayoutVersion = "1.1.3"
   val materialVersion = "1.1.0"
+  val daggerVersion = "2.27"
   val truthVersion = "0.39"
   val junitVersion = "4.12"
   val robolectricVersion = "4.3.1"

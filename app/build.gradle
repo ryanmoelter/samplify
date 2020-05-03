@@ -1,6 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: "org.jetbrains.kotlin.kapt"
 
 android {
     compileSdkVersion 29
@@ -51,6 +51,8 @@ dependencies {
     implementation(Libs.material)
     implementation(Libs.blend)
     implementation(Libs.magellan)
+    implementation(Libs.dagger)
+    kapt(Libs.daggerCompiler)
 
     testImplementation(Libs.junit)
     testImplementation(Libs.truth)
