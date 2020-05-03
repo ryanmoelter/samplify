@@ -2,4 +2,6 @@
   <string name="app_name">Samplify</string>
 
   <string name="nowPlayingAlbumDescription">Album art for current song</string>
+
+  <string name="spotifyConnectionError">Connection error: %1$s</string>
 </resources>
