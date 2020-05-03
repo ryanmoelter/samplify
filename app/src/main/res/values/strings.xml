@@ -1,6 +1,5 @@
 <resources>
   <string name="app_name">Blend sample app</string>
 
-  <string name="with_blend">With Blend</string>
-  <string name="without_blend">Without Blend</string>
+  <string name="nowPlayingAlbumDescription">Album art for current song</string>
 </resources>
