@@ -49,6 +49,9 @@ dependencies {
     implementation(Libs.ktx)
     implementation(Libs.constraintLayout)
     implementation(Libs.material)
+    implementation(Libs.blend)
+    implementation(Libs.magellan)
+
     testImplementation(Libs.junit)
     testImplementation(Libs.truth)
     testImplementation(Libs.testCore)

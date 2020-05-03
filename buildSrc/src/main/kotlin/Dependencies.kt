@@ -1,6 +1,7 @@
 
 import Version.androidTestExtVersion
 import Version.appCompatVersion
+import Version.blendVersion
 import Version.constraintLayoutVersion
 import Version.dependencyAnalyzerVersion
 import Version.espressoVersion
@@ -10,6 +11,7 @@ import Version.junitVersion
 import Version.kotlinVersion
 import Version.kotlinterVersion
 import Version.ktxVersion
+import Version.magellanVersion
 import Version.materialVersion
 import Version.mockitoVersion
 import Version.robolectricVersion
@@ -22,6 +24,9 @@ object Libs {
   val kotlinGradle = "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
   val kotlinterGradle = "org.jmailen.gradle:kotlinter-gradle:$kotlinterVersion"
   val kotlinAllOpen = "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
+
+  val blend = "com.wealthfront:blend:$blendVersion"
+  val magellan = "com.wealthfront:magellan:$magellanVersion"
 
   val dependencyAnalyzer = "com.vanniktech:gradle-dependency-graph-generator-plugin:$dependencyAnalyzerVersion"
 
@@ -53,6 +58,8 @@ object Version {
   val kotlinterVersion = "1.24.0"
   val detektVersion = "1.0.0-RC11"
 
+  val blendVersion = "0.1.0"
+  val magellanVersion = "1.1.0"
   val appCompatVersion = "1.1.0"
   val ktxVersion = "1.2.0"
   val constraintLayoutVersion = "1.1.3"
