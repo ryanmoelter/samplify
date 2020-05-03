@@ -22,7 +22,7 @@ class SpotifyRemoteWrapper @Inject constructor() {
       object : Connector.ConnectionListener {
         override fun onConnected(spotifyAppRemote: SpotifyAppRemote) {
           // mSpotifyAppRemote = spotifyAppRemote
-          Log.d("MainActivity", "Connected! Yay!")
+          Log.e(this::class.java.simpleName, "Connected! Yay!")
 
           // Now you can start interacting with App Remote
           // connected()
@@ -30,7 +30,7 @@ class SpotifyRemoteWrapper @Inject constructor() {
         }
 
         override fun onFailure(throwable: Throwable) {
-          Log.e("MainActivity", throwable.message, throwable)
+          Log.e(this::class.java.simpleName, throwable.message, throwable)
 
           // Something went wrong when attempting to connect! Handle errors here
         }

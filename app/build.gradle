@@ -55,6 +55,7 @@ dependencies {
     implementation(Libs.coroutines)
     implementation(Libs.coroutinesAndroid)
     implementation(Libs.dagger)
+    implementation(Libs.gson)
     kapt(Libs.daggerCompiler)
 
     testImplementation(Libs.junit)

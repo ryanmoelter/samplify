@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import co.moelten.samplify.AppComponentProvider.injector
 import co.moelten.samplify.spotify.SpotifyRemoteWrapper
 import com.wealthfront.magellan.BaseScreenView
 import com.wealthfront.magellan.Screen
@@ -15,10 +16,13 @@ class MainScreen : Screen<MainView>() {
   @Inject
   lateinit var spotifyRemoteWrapper: SpotifyRemoteWrapper
 
-  override fun createView(context: Context): MainView = MainView(context)
+  override fun createView(context: Context): MainView {
+    injector?.inject(this)
+    return MainView(context)
+  }
 
-  override fun onShow(context: Context?) {
-    super.onShow(context)
+  override fun onShow(context: Context) {
+    spotifyRemoteWrapper.connect(context)
   }
 }
 

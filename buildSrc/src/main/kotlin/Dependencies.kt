@@ -7,6 +7,7 @@ import Version.coroutinesVersion
 import Version.daggerVersion
 import Version.dependencyAnalyzerVersion
 import Version.espressoVersion
+import Version.gsonVersion
 import Version.javaInject
 import Version.jsrVersion
 import Version.junitVersion
@@ -41,6 +42,7 @@ object Libs {
   val material = "com.google.android.material:material:$materialVersion"
   val dagger = "com.google.dagger:dagger:$daggerVersion"
   val daggerCompiler = "com.google.dagger:dagger-compiler:$daggerVersion"
+  val gson = "com.google.code.gson:gson:$gsonVersion"
   val inject = "javax.inject:javax.inject:$javaInject"
   val jsr305 = "com.google.code.findbugs:jsr305:$jsrVersion"
   val testCore = "androidx.test:core:$testSupportVersion"
@@ -73,6 +75,7 @@ object Version {
   val constraintLayoutVersion = "1.1.3"
   val materialVersion = "1.1.0"
   val daggerVersion = "2.27"
+  val gsonVersion = "2.8.6"
   val truthVersion = "0.39"
   val junitVersion = "4.12"
   val robolectricVersion = "4.3.1"
