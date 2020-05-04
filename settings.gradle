@@ -1,2 +1,3 @@
 rootProject.name='Samplify'
 include ':app'
+include ':magellan'
