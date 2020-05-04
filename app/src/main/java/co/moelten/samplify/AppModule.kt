@@ -1,9 +1,10 @@
 package co.moelten.samplify
 
 import android.content.Context
-import com.wealthfront.magellan.Navigator
+import com.wealthfront.magellan.compose.Screen
 import dagger.Module
 import dagger.Provides
+import javax.inject.Singleton
 
 @Module
 class AppModule(private val applicationContext: Context) {
@@ -12,6 +13,7 @@ class AppModule(private val applicationContext: Context) {
   fun provideApplicationContext(): Context = applicationContext
 
   @Provides
-  fun provideNavigator(): Navigator = Navigator.withRoot(MainScreen()).build()
+  @Singleton
+  fun provideRootScreen(): Screen = MainScreen()
 }
 

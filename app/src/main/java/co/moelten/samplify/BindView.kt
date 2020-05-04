@@ -1,22 +1,24 @@
 package co.moelten.samplify
 
+import android.content.Context
 import android.view.View
 import androidx.annotation.IdRes
+import com.wealthfront.magellan.compose.ViewWrapper
+import com.wealthfront.magellan.compose.lifecycle.LifecycleAware
+import com.wealthfront.magellan.compose.lifecycle.lifecycle
 import kotlin.reflect.KProperty
 
-fun <T : View> View.bindView(@IdRes res: Int): MutableBindViewDelegate<T> {
-  return MutableBindViewDelegate(lazy(LazyThreadSafetyMode.NONE) { findViewById<T>(res)!! })
-}
+fun <ViewType : View> ViewWrapper.bindView(@IdRes res: Int) =
+  lifecycle(ViewFinder<ViewType>(res, this)) { it.myView }
 
-class MutableBindViewDelegate<T>(private val lazy: Lazy<T>) {
+class ViewFinder<ViewType : View>(@IdRes private val res : Int, private val viewWrapper: ViewWrapper) : LifecycleAware {
+  var myView: ViewType? = null
 
-  private var value: T? = null
-
-  operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
-    return value ?: lazy.getValue(thisRef, property)
+  override fun show(context: Context) {
+    myView = viewWrapper.view?.findViewById<ViewType>(res)!!
   }
 
-  operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-    this.value = value
+  override fun hide(context: Context) {
+    myView = null
   }
 }

@@ -2,6 +2,8 @@ package com.wealthfront.magellan.compose
 
 import android.content.Context
 import android.view.View
+import android.view.View.inflate
+import androidx.annotation.LayoutRes
 import com.wealthfront.magellan.compose.lifecycle.LifecycleAware
 import com.wealthfront.magellan.compose.lifecycle.LifecycleFSM
 import com.wealthfront.magellan.compose.lifecycle.LifecycleOwner
@@ -9,7 +11,7 @@ import com.wealthfront.magellan.compose.lifecycle.LifecycleState
 import com.wealthfront.magellan.compose.lifecycle.lifecycle
 import com.wealthfront.magellan.compose.transition.Displayable
 
-abstract class ViewWrapper : Displayable,
+abstract class ViewWrapper(@LayoutRes val layoutRes: Int) : Displayable,
   LifecycleAware,
   LifecycleOwner {
 
@@ -27,11 +29,9 @@ abstract class ViewWrapper : Displayable,
 
   final override fun show(context: Context) {
     lifecycleHost.show(context)
-    view = createView(context)
+    view = inflate(context, layoutRes, null)
     onShow(context)
   }
-
-  abstract fun createView(context: Context): View
 
   final override fun resume(context: Context) {
     lifecycleHost.resume(context)
@@ -52,7 +52,7 @@ abstract class ViewWrapper : Displayable,
     lifecycleHost.destroy(context)
     view = null
     onDestroy(context)
- }
+  }
 
   final override fun backPressed(): Boolean {
     return lifecycleHost.backPressed() || onBackPressed()
@@ -80,8 +80,9 @@ abstract class ViewWrapper : Displayable,
 }
 
 // An easy wrapper to keep using customViews
-class CustomViewWrapper<CustomView : View>(val createView: (Context) -> CustomView) :
-  LifecycleAware {
+class CustomViewWrapper<CustomView : View>(
+  val createView: (Context) -> CustomView
+) : LifecycleAware {
   var view: CustomView? = null
     protected set
 
