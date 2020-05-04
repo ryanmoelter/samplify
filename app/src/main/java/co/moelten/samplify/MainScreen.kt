@@ -1,20 +1,16 @@
 package co.moelten.samplify
 
 import android.content.Context
-import android.view.View
-import android.view.View.inflate
 import android.widget.ImageView
 import android.widget.TextView
 import co.moelten.samplify.AppComponentProvider.injector
 import co.moelten.samplify.spotify.SpotifyRemoteWrapper
 import com.spotify.android.appremote.api.SpotifyAppRemote
-import com.spotify.protocol.types.PlayerState
 import com.spotify.protocol.types.Track
 import com.wealthfront.magellan.compose.Screen
 import com.wealthfront.magellan.compose.ViewWrapper
 import com.wealthfront.magellan.compose.lifecycle.lifecycle
 import com.wealthfront.magellan.compose.transition.DelegatedDisplayable
-import com.wealthfront.magellan.compose.transition.Displayable
 import javax.inject.Inject
 
 class MainScreen : Screen(), DelegatedDisplayable {
@@ -24,6 +20,11 @@ class MainScreen : Screen(), DelegatedDisplayable {
   @Inject
   lateinit var spotifyRemoteWrapper: SpotifyRemoteWrapper
   var spotifyAppRemote: SpotifyAppRemote? = null
+
+  override fun onCreate(context: Context) {
+    injector?.inject(this)
+    super.onCreate(context)
+  }
 
   override fun onShow(context: Context) {
     spotifyRemoteWrapper.connect(context) { spotifyAppRemote ->

@@ -6,19 +6,25 @@ import androidx.annotation.IdRes
 import com.wealthfront.magellan.compose.ViewWrapper
 import com.wealthfront.magellan.compose.lifecycle.LifecycleAware
 import com.wealthfront.magellan.compose.lifecycle.lifecycle
-import kotlin.reflect.KProperty
 
-fun <ViewType : View> ViewWrapper.bindView(@IdRes res: Int) =
-  lifecycle(ViewFinder<ViewType>(res, this)) { it.myView }
+fun <T : View> ViewWrapper.bindView(@IdRes res: Int) =
+  lifecycle(MutableBindViewDelegate<T>(this, res)) { it.cachedView }
 
-class ViewFinder<ViewType : View>(@IdRes private val res : Int, private val viewWrapper: ViewWrapper) : LifecycleAware {
-  var myView: ViewType? = null
+class MutableBindViewDelegate<T : View>(
+  val viewWrapper: ViewWrapper,
+  @IdRes val id: Int
+) : LifecycleAware {
 
-  override fun show(context: Context) {
-    myView = viewWrapper.view?.findViewById<ViewType>(res)!!
-  }
+  var cachedView: T? = null
+    get() {
+      if (field == null) {
+        field = viewWrapper.view?.findViewById<T>(id)
+      }
+      return field
+    }
+    private set
 
   override fun hide(context: Context) {
-    myView = null
+    cachedView = null
   }
 }
