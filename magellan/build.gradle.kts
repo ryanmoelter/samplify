@@ -9,6 +9,8 @@ dependencies {
     implementation(Libs.kotlinStdLib)
     implementation(Libs.inject)
     implementation(Libs.jsr305)
+    implementation(Libs.coroutines)
+    implementation(Libs.coroutinesAndroid)
 
     testImplementation(Libs.mockitoCore)
     testImplementation(Libs.junit)
