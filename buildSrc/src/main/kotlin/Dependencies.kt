@@ -14,6 +14,7 @@ import Version.junitVersion
 import Version.kotlinVersion
 import Version.kotlinterVersion
 import Version.ktxVersion
+import Version.lifecycleVersion
 import Version.magellanVersion
 import Version.materialVersion
 import Version.mockitoVersion
@@ -32,6 +33,8 @@ object Libs {
   val magellan = "com.wealthfront:magellan:$magellanVersion"
   val coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion"
   val coroutinesAndroid = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
+  val lifecycle = "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion"
+  val lifecycleCommon = "androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion"
 
   val dependencyAnalyzer = "com.vanniktech:gradle-dependency-graph-generator-plugin:$dependencyAnalyzerVersion"
 
@@ -69,6 +72,7 @@ object Version {
   val blendVersion = "0.1.0"
   val magellanVersion = "1.1.0"
   val coroutinesVersion = "1.3.5"
+  val lifecycleVersion = "2.2.0"
 
   val appCompatVersion = "1.1.0"
   val ktxVersion = "1.2.0"

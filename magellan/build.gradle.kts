@@ -11,6 +11,8 @@ dependencies {
     implementation(Libs.jsr305)
     implementation(Libs.coroutines)
     implementation(Libs.coroutinesAndroid)
+    implementation(Libs.lifecycle)
+    implementation(Libs.lifecycleCommon)
 
     testImplementation(Libs.mockitoCore)
     testImplementation(Libs.junit)
