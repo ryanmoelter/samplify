@@ -13,6 +13,7 @@ import com.wealthfront.magellan.compose.Screen
 import com.wealthfront.magellan.compose.ViewWrapper
 import com.wealthfront.magellan.compose.coroutine.CreatedCoroutineScope
 import com.wealthfront.magellan.compose.coroutine.ShownCoroutineScope
+import com.wealthfront.magellan.compose.lifecycle.lateinitLifecycle
 import com.wealthfront.magellan.compose.lifecycle.lifecycle
 import com.wealthfront.magellan.compose.transition.DelegatedDisplayable
 import kotlinx.coroutines.Dispatchers
@@ -27,17 +28,17 @@ import javax.inject.Inject
 
 class MainScreen : Screen(), DelegatedDisplayable {
 
-  val createdScope by lifecycle(CreatedCoroutineScope())
-  val playerStateChannel = Channel<PlayerState>(CONFLATED)
+  private val createdScope by lifecycle(CreatedCoroutineScope())
+  private val playerStateChannel = Channel<PlayerState>(CONFLATED)
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override val displayable by lifecycle(MainView(
-    playerStateProvider = playerStateChannel.receiveAsFlow(),
-    resolveImage = ::getImage
+    this,
+    playerStateProvider = playerStateChannel.receiveAsFlow()
   ))
 
-  @Inject
-  lateinit var spotifyRemoteWrapper: SpotifyRemoteWrapper
+  @set:Inject
+  var spotifyRemoteWrapper: SpotifyRemoteWrapper by lateinitLifecycle()
 
   override fun onCreate(context: Context) {
     injector?.inject(this)
@@ -45,37 +46,32 @@ class MainScreen : Screen(), DelegatedDisplayable {
 
   override fun onShow(context: Context) {
     createdScope.launch {
-      spotifyRemoteWrapper.connect(context)
-      launch {
-        spotifyRemoteWrapper.getPlayerState().collect { playerState ->
-          playerStateChannel.send(playerState)
-        }
+      spotifyRemoteWrapper.getPlayerState().collect { playerState ->
+        playerStateChannel.send(playerState)
       }
     }
   }
 
   suspend fun getImage(imageUri: ImageUri): Bitmap = spotifyRemoteWrapper.getImage(imageUri)
-
-  override fun onHide(context: Context) {
-    spotifyRemoteWrapper.disconnect()
-  }
 }
 
 class MainView(
-  val playerStateProvider: Flow<PlayerState>,
-  val resolveImage: suspend (ImageUri) -> Bitmap
+  val screen: MainScreen,
+  val playerStateProvider: Flow<PlayerState>
 ) : ViewWrapper(R.layout.main_screen) {
   val shownScope by lifecycle(ShownCoroutineScope())
 
   var nowPlayingAlbumArt: ImageView? by bindView(R.id.nowPlayingAlbumArt)
   var nowPlayingTitle: TextView? by bindView(R.id.nowPlayingTitle)
+  var nowPlayingArtist: TextView? by bindView(R.id.nowPlayingArtist)
 
   override fun onShow(context: Context) {
     shownScope.launch(Dispatchers.Main) {
       playerStateProvider.collect { playerState ->
-        nowPlayingTitle!!.text = playerState.track.name
+        nowPlayingTitle!!.text = playerState.track?.name ?: "Nothing is playing"
+        nowPlayingArtist!!.text = playerState.track?.artist?.name
         nowPlayingAlbumArt!!.setImageDrawable(
-          BitmapDrawable(context.resources, resolveImage(playerState.track.imageUri))
+          BitmapDrawable(context.resources, screen.getImage(playerState.track.imageUri))
         )
       }
     }

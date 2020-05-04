@@ -17,6 +17,8 @@ import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -25,11 +27,27 @@ import kotlin.coroutines.suspendCoroutine
 const val CLIENT_ID = "e7ee02a6c50f4e8b8690bbb6b974db78"
 const val REDIRECT_URI = "samplify://authenticated"
 
-class SpotifyRemoteWrapper @Inject constructor() : LifecycleAware {
+class SpotifyRemoteWrapper @Inject constructor(
+  val applicationContext: Context
+) : LifecycleAware {
 
-  lateinit var appRemote: SpotifyAppRemote
+  private val remoteMutex = Mutex()
+  private var _appRemote: SpotifyAppRemote? = null
 
-  suspend fun connect(context: Context) {
+  private suspend fun getAppRemote(): SpotifyAppRemote =
+    if (_appRemote == null) {
+      remoteMutex.withLock {
+        if (_appRemote == null) {
+          _appRemote = connect(applicationContext)
+        }
+      }
+      _appRemote!!
+    }
+    else {
+      _appRemote!!
+    }
+
+  private suspend fun connect(context: Context): SpotifyAppRemote {
     val connectionParams = ConnectionParams.Builder(CLIENT_ID)
       .setRedirectUri(REDIRECT_URI)
       .showAuthView(true)
@@ -39,8 +57,7 @@ class SpotifyRemoteWrapper @Inject constructor() : LifecycleAware {
       SpotifyAppRemote.connect(context, connectionParams,
         object : Connector.ConnectionListener {
           override fun onConnected(spotifyAppRemote: SpotifyAppRemote) {
-            appRemote = spotifyAppRemote
-            continuation.resume(Unit)
+            continuation.resume(spotifyAppRemote)
           }
 
           override fun onFailure(throwable: Throwable) {
@@ -53,7 +70,7 @@ class SpotifyRemoteWrapper @Inject constructor() : LifecycleAware {
   @OptIn(ExperimentalCoroutinesApi::class)
   fun getPlayerState(): Flow<PlayerState> =
     callbackFlow<PlayerState> {
-      appRemote.playerApi.subscribeToPlayerState()
+      getAppRemote().playerApi.subscribeToPlayerState()
         .setEventCallback { playerState ->
           sendBlocking(playerState)
         }
@@ -63,13 +80,20 @@ class SpotifyRemoteWrapper @Inject constructor() : LifecycleAware {
       awaitClose()
     }.buffer(CONFLATED)
 
-  suspend fun getImage(uri: ImageUri): Bitmap = suspendCoroutine { continuation ->
-    appRemote.imagesApi.getImage(uri)
-      .setResultCallback { bitmap -> continuation.resume(bitmap) }
-      .setErrorCallback { throwable -> continuation.resumeWithException(throwable) }
+  suspend fun getImage(uri: ImageUri): Bitmap {
+    val appRemote = getAppRemote()
+    return suspendCoroutine { continuation ->
+      appRemote.imagesApi.getImage(uri)
+        .setResultCallback { bitmap -> continuation.resume(bitmap) }
+        .setErrorCallback { throwable -> continuation.resumeWithException(throwable) }
+    }
+  }
+
+  override fun hide(context: Context) {
+    disconnect()
   }
 
   fun disconnect() {
-    SpotifyAppRemote.disconnect(appRemote)
+    SpotifyAppRemote.disconnect(_appRemote)
   }
 }
