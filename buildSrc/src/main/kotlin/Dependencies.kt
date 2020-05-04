@@ -63,7 +63,7 @@ object Version {
   val targetSdkVersion = 28
   val buildTools = "28.0.3"
 
-  val kotlinVersion = "1.3.31"
+  val kotlinVersion = "1.3.71"
   val javaVersion = JavaVersion.VERSION_1_8
   val dependencyAnalyzerVersion = "0.6.0-SNAPSHOT"
   val kotlinterVersion = "1.24.0"

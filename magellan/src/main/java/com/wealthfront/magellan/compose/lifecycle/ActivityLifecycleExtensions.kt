@@ -1,8 +1,6 @@
 package com.wealthfront.magellan.compose.lifecycle
 
 import android.app.Activity
-import android.app.Application
-import android.content.Context
 import android.widget.FrameLayout
 import androidx.annotation.IdRes
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -15,29 +13,35 @@ fun Navigable.attachToActivity(
   lifecycle: Lifecycle,
   @IdRes containerRes: Int
 ) {
-  lifecycle.addObserver(object : DefaultLifecycleObserver {
-    override fun onStart(owner: LifecycleOwner) {
-      show(context)
-      context.findViewById<FrameLayout>(containerRes).addView(view!!)
-    }
+  lifecycle.addObserver(ActivityLifecycleAdapter(this, context, containerRes))
+}
 
-    override fun onResume(owner: LifecycleOwner) {
-      resume(context)
-    }
+class ActivityLifecycleAdapter(
+  private val navigable: Navigable,
+  private val context: Activity,
+  private val containerRes: Int
+) : DefaultLifecycleObserver {
+  override fun onStart(owner: LifecycleOwner) {
+    navigable.show(context)
+    context.findViewById<FrameLayout>(containerRes).addView(navigable.view!!)
+  }
 
-    override fun onPause(owner: LifecycleOwner) {
-      pause(context)
-    }
+  override fun onResume(owner: LifecycleOwner) {
+    navigable.resume(context)
+  }
 
-    override fun onStop(owner: LifecycleOwner) {
-      hide(context)
-      context.findViewById<FrameLayout>(containerRes).removeView(view!!)
-    }
+  override fun onPause(owner: LifecycleOwner) {
+    navigable.pause(context)
+  }
 
-    override fun onDestroy(owner: LifecycleOwner) {
-      if (context.isFinishing) {
-        destroy(context)
-      }
+  override fun onStop(owner: LifecycleOwner) {
+    navigable.hide(context)
+    context.findViewById<FrameLayout>(containerRes).removeView(navigable.view!!)
+  }
+
+  override fun onDestroy(owner: LifecycleOwner) {
+    if (context.isFinishing) {
+      navigable.destroy(context)
     }
-  })
+  }
 }

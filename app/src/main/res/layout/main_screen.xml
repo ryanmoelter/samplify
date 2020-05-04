@@ -14,8 +14,9 @@
       android:layout_marginStart="@dimen/normalPadding"
       android:contentDescription="@string/app_name"
       app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintBottom_toTopOf="@id/nowPlayingTitle"
       app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintVertical_chainStyle="packed"
       tools:src="@mipmap/ic_launcher"
       />
 
@@ -23,11 +24,24 @@
       android:id="@+id/nowPlayingTitle"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginStart="@dimen/smallPadding"
-      app:layout_constraintTop_toTopOf="@id/nowPlayingAlbumArt"
-      app:layout_constraintStart_toEndOf="@id/nowPlayingAlbumArt"
+      android:layout_marginTop="@dimen/smallPadding"
+      app:layout_constraintTop_toBottomOf="@id/nowPlayingAlbumArt"
+      app:layout_constraintBottom_toTopOf="@id/nowPlayingArtist"
+      app:layout_constraintStart_toStartOf="@id/nowPlayingAlbumArt"
       android:textAppearance="?textAppearanceBody1"
       tools:text="A cool song"
+      />
+
+  <TextView
+      android:id="@+id/nowPlayingArtist"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/smallPadding"
+      app:layout_constraintTop_toBottomOf="@id/nowPlayingTitle"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="@id/nowPlayingTitle"
+      android:textAppearance="?textAppearanceBody2"
+      tools:text="A cool band"
       />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

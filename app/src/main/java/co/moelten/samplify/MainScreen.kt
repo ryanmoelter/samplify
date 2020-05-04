@@ -1,52 +1,83 @@
 package co.moelten.samplify
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.widget.ImageView
 import android.widget.TextView
 import co.moelten.samplify.AppComponentProvider.injector
 import co.moelten.samplify.spotify.SpotifyRemoteWrapper
-import com.spotify.android.appremote.api.SpotifyAppRemote
-import com.spotify.protocol.types.Track
+import com.spotify.protocol.types.ImageUri
+import com.spotify.protocol.types.PlayerState
 import com.wealthfront.magellan.compose.Screen
 import com.wealthfront.magellan.compose.ViewWrapper
+import com.wealthfront.magellan.compose.coroutine.CreatedCoroutineScope
+import com.wealthfront.magellan.compose.coroutine.ShownCoroutineScope
 import com.wealthfront.magellan.compose.lifecycle.lifecycle
 import com.wealthfront.magellan.compose.transition.DelegatedDisplayable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainScreen : Screen(), DelegatedDisplayable {
 
-  override val displayable by lifecycle(MainView())
+  val createdScope by lifecycle(CreatedCoroutineScope())
+  val playerStateChannel = Channel<PlayerState>(CONFLATED)
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override val displayable by lifecycle(MainView(
+    playerStateProvider = playerStateChannel.receiveAsFlow(),
+    resolveImage = ::getImage
+  ))
 
   @Inject
   lateinit var spotifyRemoteWrapper: SpotifyRemoteWrapper
-  var spotifyAppRemote: SpotifyAppRemote? = null
 
   override fun onCreate(context: Context) {
     injector?.inject(this)
-    super.onCreate(context)
   }
 
   override fun onShow(context: Context) {
-    spotifyRemoteWrapper.connect(context) { spotifyAppRemote ->
-      this.spotifyAppRemote = spotifyAppRemote
-      spotifyAppRemote.playerApi.subscribeToPlayerState()
-        .setEventCallback { playerState ->
-          displayable.setTrack(playerState.track)
+    createdScope.launch {
+      spotifyRemoteWrapper.connect(context)
+      launch {
+        spotifyRemoteWrapper.getPlayerState().collect { playerState ->
+          playerStateChannel.send(playerState)
         }
+      }
     }
   }
 
+  suspend fun getImage(imageUri: ImageUri): Bitmap = spotifyRemoteWrapper.getImage(imageUri)
+
   override fun onHide(context: Context) {
-    spotifyRemoteWrapper.disconnect(spotifyAppRemote)
+    spotifyRemoteWrapper.disconnect()
   }
 }
 
-class MainView : ViewWrapper(R.layout.main_screen) {
+class MainView(
+  val playerStateProvider: Flow<PlayerState>,
+  val resolveImage: suspend (ImageUri) -> Bitmap
+) : ViewWrapper(R.layout.main_screen) {
+  val shownScope by lifecycle(ShownCoroutineScope())
+
   var nowPlayingAlbumArt: ImageView? by bindView(R.id.nowPlayingAlbumArt)
   var nowPlayingTitle: TextView? by bindView(R.id.nowPlayingTitle)
 
-  fun setTrack(track: Track) {
-    nowPlayingTitle?.text = track.name
-    track.imageUri
+  override fun onShow(context: Context) {
+    shownScope.launch(Dispatchers.Main) {
+      playerStateProvider.collect { playerState ->
+        nowPlayingTitle!!.text = playerState.track.name
+        nowPlayingAlbumArt!!.setImageDrawable(
+          BitmapDrawable(context.resources, resolveImage(playerState.track.imageUri))
+        )
+      }
+    }
   }
 }
