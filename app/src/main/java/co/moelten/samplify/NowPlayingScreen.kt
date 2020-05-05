@@ -35,7 +35,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class MainScreen : Screen(), DelegatedDisplayable {
+class NowPlayingScreen : Screen(), DelegatedDisplayable {
 
   private val shownScope by lifecycle(ShownCoroutineScope())
 
@@ -68,7 +68,7 @@ class MainScreen : Screen(), DelegatedDisplayable {
       }
 
   override val displayable by lifecycle(
-    MainView(trackFlow = trackFlow, albumArtFlow = albumArtFlow)
+    NowPlayingViewWrapper(trackFlow = trackFlow, albumArtFlow = albumArtFlow)
   )
 
   @set:Inject
@@ -91,10 +91,10 @@ class MainScreen : Screen(), DelegatedDisplayable {
   suspend fun getImage(imageUri: ImageUri): Bitmap = spotifyRemoteWrapper.getImage(imageUri)
 }
 
-class MainView(
+class NowPlayingViewWrapper(
   val trackFlow: Flow<Loadable<Track?>>,
   val albumArtFlow: Flow<Loadable<Bitmap>>
-) : ViewWrapper(R.layout.main_screen) {
+) : ViewWrapper(R.layout.now_playing) {
   val shownScope by lifecycle(ShownCoroutineScope())
 
   var nowPlayingAlbumArt: ImageView? by bindView(R.id.nowPlayingAlbumArt)

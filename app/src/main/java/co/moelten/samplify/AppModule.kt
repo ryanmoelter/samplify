@@ -14,6 +14,6 @@ class AppModule(private val applicationContext: Context) {
 
   @Provides
   @Singleton
-  fun provideRootScreen(): Screen = MainScreen()
+  fun provideRootScreen(): Screen = NowPlayingScreen()
 }
 
