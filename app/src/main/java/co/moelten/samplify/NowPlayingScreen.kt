@@ -11,6 +11,7 @@ import co.moelten.samplify.model.Loadable.Error
 import co.moelten.samplify.model.Loadable.Loading
 import co.moelten.samplify.model.Loadable.Success
 import co.moelten.samplify.model.mapLoadableValue
+import co.moelten.samplify.spotify.Player
 import co.moelten.samplify.spotify.SpotifyRemoteWrapper
 import coil.api.load
 import com.spotify.protocol.types.ImageUri
@@ -68,7 +69,11 @@ class NowPlayingScreen : Screen(), DelegatedDisplayable {
       }
 
   override val displayable by lifecycle(
-    NowPlayingViewWrapper(trackFlow = trackFlow, albumArtFlow = albumArtFlow)
+    NowPlayingViewWrapper(
+      trackFlow = trackFlow,
+      albumArtFlow = albumArtFlow,
+      getPlayer = { spotifyRemoteWrapper.player }
+    )
   )
 
   @set:Inject
@@ -93,7 +98,8 @@ class NowPlayingScreen : Screen(), DelegatedDisplayable {
 
 class NowPlayingViewWrapper(
   val trackFlow: Flow<Loadable<Track?>>,
-  val albumArtFlow: Flow<Loadable<Bitmap>>
+  val albumArtFlow: Flow<Loadable<Bitmap>>,
+  val getPlayer: () -> Player
 ) : ViewWrapper(R.layout.now_playing) {
   val shownScope by lifecycle(ShownCoroutineScope())
 
@@ -102,6 +108,9 @@ class NowPlayingViewWrapper(
   var nowPlayingArtist: TextView? by bindView(R.id.nowPlayingArtist)
 
   override fun onShow(context: Context) {
+    nowPlayingAlbumArt!!.setOnClickListener {
+      shownScope.launch { getPlayer().playOrPause() }
+    }
     shownScope.launch(Dispatchers.Main) {
       launch {
         trackFlow.collect { loadableTrack ->
@@ -128,6 +137,7 @@ class NowPlayingViewWrapper(
             when (loadableBitmapDrawable) {
               is Success -> {
                 nowPlayingAlbumArt!!.load(loadableBitmapDrawable.value) {
+                  placeholder(R.drawable.ic_launcher_background)
                   crossfade(ANIM_DURATION_DEFAULT_MS.toInt())
                 }
               }

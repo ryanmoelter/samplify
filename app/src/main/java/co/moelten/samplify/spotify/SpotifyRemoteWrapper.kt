@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
+import com.spotify.android.appremote.api.PlayerApi
 import com.spotify.android.appremote.api.SpotifyAppRemote
+import com.spotify.protocol.client.CallResult
 import com.spotify.protocol.types.ImageUri
 import com.spotify.protocol.types.PlayerState
 import com.wealthfront.magellan.compose.lifecycle.LifecycleAware
@@ -17,9 +19,11 @@ import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -27,6 +31,7 @@ import kotlin.coroutines.suspendCoroutine
 const val CLIENT_ID = "e7ee02a6c50f4e8b8690bbb6b974db78"
 const val REDIRECT_URI = "samplify://authenticated"
 
+@Singleton
 class SpotifyRemoteWrapper @Inject constructor(
   val applicationContext: Context
 ) : LifecycleAware {
@@ -34,18 +39,18 @@ class SpotifyRemoteWrapper @Inject constructor(
   private val remoteMutex = Mutex()
   private var _appRemote: SpotifyAppRemote? = null
 
-  private suspend fun getAppRemote(): SpotifyAppRemote =
+  val player = Player { getAppRemote().playerApi }
+
+  private suspend fun getAppRemote(): SpotifyAppRemote {
     if (_appRemote == null) {
       remoteMutex.withLock {
         if (_appRemote == null) {
           _appRemote = connect(applicationContext)
         }
       }
-      _appRemote!!
     }
-    else {
-      _appRemote!!
-    }
+    return _appRemote!!
+  }
 
   private suspend fun connect(context: Context): SpotifyAppRemote {
     val connectionParams = ConnectionParams.Builder(CLIENT_ID)
@@ -70,24 +75,19 @@ class SpotifyRemoteWrapper @Inject constructor(
   @OptIn(ExperimentalCoroutinesApi::class)
   fun getPlayerState(): Flow<PlayerState> =
     callbackFlow<PlayerState> {
-      getAppRemote().playerApi.subscribeToPlayerState()
+      val call = getAppRemote().playerApi.subscribeToPlayerState()
         .setEventCallback { playerState ->
           sendBlocking(playerState)
         }
         .setErrorCallback { throwable ->
           cancel(CancellationException("App remote error", throwable))
         }
-      awaitClose()
+      awaitClose {
+        call.cancel()
+      }
     }.buffer(CONFLATED)
 
-  suspend fun getImage(uri: ImageUri): Bitmap {
-    val appRemote = getAppRemote()
-    return suspendCoroutine { continuation ->
-      appRemote.imagesApi.getImage(uri)
-        .setResultCallback { bitmap -> continuation.resume(bitmap) }
-        .setErrorCallback { throwable -> continuation.resumeWithException(throwable) }
-    }
-  }
+  suspend fun getImage(uri: ImageUri): Bitmap = getAppRemote().imagesApi.getImage(uri).awaitAsync()
 
   override fun hide(context: Context) {
     disconnect()
@@ -98,3 +98,32 @@ class SpotifyRemoteWrapper @Inject constructor(
     _appRemote = null
   }
 }
+
+class Player(
+  val getPlayerApi: suspend () -> PlayerApi
+) {
+  suspend fun play(uri: String) = getPlayerApi().play(uri).awaitAsync()
+  suspend fun play() = getPlayerApi().resume().awaitAsync()
+  suspend fun pause() = getPlayerApi().pause().awaitAsync()
+  suspend fun next() = getPlayerApi().skipNext().awaitAsync()
+  suspend fun previous() = getPlayerApi().skipPrevious().awaitAsync()
+  suspend fun playOrPause() {
+    val state = getPlayerApi().playerState.awaitAsync()
+    if (state.isPaused) {
+      play()
+    } else {
+      pause()
+    }
+  }
+}
+
+suspend fun <Data> CallResult<Data>.awaitAsync(): Data =
+  suspendCancellableCoroutine { cancellableContinuation ->
+    setResultCallback { data ->
+      cancellableContinuation.resume(data)
+    }
+    setErrorCallback { throwable ->
+      cancellableContinuation.resumeWithException(throwable)
+    }
+    cancellableContinuation.invokeOnCancellation { cancel() }
+  }
