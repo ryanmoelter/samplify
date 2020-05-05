@@ -1,47 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
     >
 
-  <ImageView
-      android:id="@+id/nowPlayingAlbumArt"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginStart="@dimen/normalPadding"
-      android:contentDescription="@string/app_name"
-      app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintBottom_toTopOf="@id/nowPlayingTitle"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintVertical_chainStyle="packed"
-      tools:src="@mipmap/ic_launcher"
-      />
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      >
 
-  <TextView
-      android:id="@+id/nowPlayingTitle"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="@dimen/smallPadding"
-      app:layout_constraintTop_toBottomOf="@id/nowPlayingAlbumArt"
-      app:layout_constraintBottom_toTopOf="@id/nowPlayingArtist"
-      app:layout_constraintStart_toStartOf="@id/nowPlayingAlbumArt"
-      android:textAppearance="?textAppearanceBody1"
-      tools:text="A cool song"
-      />
+    <ImageView
+        android:id="@+id/nowPlayingAlbumArt"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/normalPadding"
+        android:layout_marginEnd="@dimen/normalPadding"
+        android:contentDescription="@string/app_name"
+        android:adjustViewBounds="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/nowPlayingTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:src="@mipmap/ic_launcher"
+        />
 
-  <TextView
-      android:id="@+id/nowPlayingArtist"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="@dimen/smallPadding"
-      app:layout_constraintTop_toBottomOf="@id/nowPlayingTitle"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintStart_toStartOf="@id/nowPlayingTitle"
-      android:textAppearance="?textAppearanceBody2"
-      tools:text="A cool band"
-      />
+    <TextView
+        android:id="@+id/nowPlayingTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/smallPadding"
+        app:layout_constraintTop_toBottomOf="@id/nowPlayingAlbumArt"
+        app:layout_constraintBottom_toTopOf="@id/nowPlayingArtist"
+        app:layout_constraintStart_toStartOf="@id/nowPlayingAlbumArt"
+        android:textAppearance="?textAppearanceHeadline6"
+        tools:text="The Good Left Undone"
+        />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:id="@+id/nowPlayingArtist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/smallPadding"
+        app:layout_constraintTop_toBottomOf="@id/nowPlayingTitle"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@id/nowPlayingTitle"
+        android:textAppearance="?textAppearanceBody1"
+        tools:text="A cool band"
+        />
+
+  </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>

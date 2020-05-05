@@ -6,36 +6,68 @@ import android.graphics.drawable.BitmapDrawable
 import android.widget.ImageView
 import android.widget.TextView
 import co.moelten.samplify.AppComponentProvider.injector
+import co.moelten.samplify.model.Loadable
+import co.moelten.samplify.model.Loadable.Error
+import co.moelten.samplify.model.Loadable.Loading
+import co.moelten.samplify.model.Loadable.Success
+import co.moelten.samplify.model.mapLoadableValue
 import co.moelten.samplify.spotify.SpotifyRemoteWrapper
 import com.spotify.protocol.types.ImageUri
 import com.spotify.protocol.types.PlayerState
+import com.spotify.protocol.types.Track
 import com.wealthfront.magellan.compose.Screen
 import com.wealthfront.magellan.compose.ViewWrapper
-import com.wealthfront.magellan.compose.coroutine.CreatedCoroutineScope
 import com.wealthfront.magellan.compose.coroutine.ShownCoroutineScope
 import com.wealthfront.magellan.compose.lifecycle.lateinitLifecycle
 import com.wealthfront.magellan.compose.lifecycle.lifecycle
 import com.wealthfront.magellan.compose.transition.DelegatedDisplayable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainScreen : Screen(), DelegatedDisplayable {
 
-  private val createdScope by lifecycle(CreatedCoroutineScope())
-  private val playerStateChannel = Channel<PlayerState>(CONFLATED)
+  private val shownScope by lifecycle(ShownCoroutineScope())
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  override val displayable by lifecycle(MainView(
-    this,
-    playerStateProvider = playerStateChannel.receiveAsFlow()
-  ))
+  private val playerStateChannel = ConflatedBroadcastChannel<Loadable<PlayerState>>()
+
+  @OptIn(FlowPreview::class)
+  val trackFlow
+    get() = playerStateChannel.asFlow()
+      .mapLoadableValue { playerState -> playerState.track }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  val albumArtFlow
+    get() = trackFlow
+      .flatMapLatest { loadable ->
+        flow {
+          when (loadable) {
+            is Success -> {
+              emit(Loading())
+              emit(Success(getImage(loadable.value.imageUri)))
+            }
+            is Loading -> {
+              emit(Loading())
+            }
+            is Error -> {
+              emit(Error<Bitmap>(loadable.throwable))
+            }
+          }
+        }
+      }
+
+  override val displayable by lifecycle(
+    MainView(trackFlow = trackFlow, albumArtFlow = albumArtFlow)
+  )
 
   @set:Inject
   var spotifyRemoteWrapper: SpotifyRemoteWrapper by lateinitLifecycle()
@@ -44,10 +76,12 @@ class MainScreen : Screen(), DelegatedDisplayable {
     injector?.inject(this)
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   override fun onShow(context: Context) {
-    createdScope.launch {
+    shownScope.launch {
+      playerStateChannel.send(Loading())
       spotifyRemoteWrapper.getPlayerState().collect { playerState ->
-        playerStateChannel.send(playerState)
+        playerStateChannel.send(Success(playerState))
       }
     }
   }
@@ -56,8 +90,8 @@ class MainScreen : Screen(), DelegatedDisplayable {
 }
 
 class MainView(
-  val screen: MainScreen,
-  val playerStateProvider: Flow<PlayerState>
+  val trackFlow: Flow<Loadable<Track?>>,
+  val albumArtFlow: Flow<Loadable<Bitmap>>
 ) : ViewWrapper(R.layout.main_screen) {
   val shownScope by lifecycle(ShownCoroutineScope())
 
@@ -67,12 +101,37 @@ class MainView(
 
   override fun onShow(context: Context) {
     shownScope.launch(Dispatchers.Main) {
-      playerStateProvider.collect { playerState ->
-        nowPlayingTitle!!.text = playerState.track?.name ?: "Nothing is playing"
-        nowPlayingArtist!!.text = playerState.track?.artist?.name
-        nowPlayingAlbumArt!!.setImageDrawable(
-          BitmapDrawable(context.resources, screen.getImage(playerState.track.imageUri))
-        )
+      launch {
+        trackFlow.collect { loadableTrack ->
+          when (loadableTrack) {
+            is Success -> {
+              nowPlayingTitle!!.text = loadableTrack.value?.name ?: context.getString(R.string.empty_track_name)
+              nowPlayingArtist!!.text = loadableTrack.value?.artist?.name
+            }
+            is Loading -> {
+              nowPlayingTitle!!.text = context.getString(R.string.loading)
+              nowPlayingArtist!!.text = null
+            }
+            is Error -> {
+              nowPlayingTitle!!.text = context.getString(R.string.error)
+              nowPlayingArtist!!.text = null
+            }
+          }.let { }
+        }
+      }
+      launch {
+        albumArtFlow
+          .mapLoadableValue { bitmap -> BitmapDrawable(context.resources, bitmap) }
+          .collect { loadableBitmapDrawable ->
+            when (loadableBitmapDrawable) {
+              is Success -> {
+                nowPlayingAlbumArt!!.setImageDrawable(loadableBitmapDrawable.value)
+              }
+              is Loading, is Error -> {
+                nowPlayingAlbumArt!!.setImageResource(R.drawable.ic_launcher_background)
+              }
+            }.let { }
+          }
       }
     }
   }

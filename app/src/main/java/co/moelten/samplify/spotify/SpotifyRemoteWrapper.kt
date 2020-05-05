@@ -95,5 +95,6 @@ class SpotifyRemoteWrapper @Inject constructor(
 
   fun disconnect() {
     SpotifyAppRemote.disconnect(_appRemote)
+    _appRemote = null
   }
 }

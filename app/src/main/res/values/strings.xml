@@ -1,7 +1,10 @@
 <resources>
   <string name="app_name">Samplify</string>
 
-  <string name="nowPlayingAlbumDescription">Album art for current song</string>
+  <string name="now_playing_album_description">Album art for current song</string>
 
-  <string name="spotifyConnectionError">Connection error: %1$s</string>
+  <string name="loading">Loading…</string>
+  <string name="error">Error</string>
+  <string name="error_spotify_connection">Connection error: %1$s</string>
+  <string name="empty_track_name">Nothing is playing</string>
 </resources>
