@@ -31,6 +31,7 @@ import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -51,12 +52,14 @@ class NowPlayingScreen : Screen(), DelegatedDisplayable {
   @OptIn(ExperimentalCoroutinesApi::class)
   val albumArtFlow
     get() = trackFlow
+      .mapLoadableValue { track -> track.imageUri }
+      .distinctUntilChanged()
       .flatMapLatest { loadable ->
         flow {
           when (loadable) {
             is Success -> {
               emit(Loading())
-              emit(Success(getImage(loadable.value.imageUri)))
+              emit(Success(getImage(loadable.value)))
             }
             is Loading -> {
               emit(Loading())
