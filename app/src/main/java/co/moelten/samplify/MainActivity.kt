@@ -1,7 +1,7 @@
 package co.moelten.samplify
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import co.moelten.samplify.AppComponentProvider.injector
 import com.wealthfront.magellan.compose.Screen
 import com.wealthfront.magellan.compose.lifecycle.attachToActivity
@@ -15,6 +15,6 @@ class MainActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     injector?.inject(this)
     setContentView(R.layout.activity_main)
-    rootScreen.attachToActivity(this, lifecycle, R.id.magellanContainer)
+    rootScreen.attachToActivity(this, R.id.magellanContainer)
   }
 }

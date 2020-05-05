@@ -2,18 +2,17 @@ package com.wealthfront.magellan.compose.lifecycle
 
 import android.app.Activity
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.annotation.IdRes
 import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import com.wealthfront.magellan.compose.navigation.Navigable
 
 fun Navigable.attachToActivity(
-  context: Activity,
-  lifecycle: Lifecycle,
+  context: ComponentActivity,
   @IdRes containerRes: Int
 ) {
-  lifecycle.addObserver(ActivityLifecycleAdapter(this, context, containerRes))
+  context.lifecycle.addObserver(ActivityLifecycleAdapter(this, context, containerRes))
 }
 
 class ActivityLifecycleAdapter(
@@ -36,7 +35,7 @@ class ActivityLifecycleAdapter(
 
   override fun onStop(owner: LifecycleOwner) {
     navigable.hide(context)
-    context.findViewById<FrameLayout>(containerRes).removeView(navigable.view!!)
+    context.findViewById<FrameLayout>(containerRes).removeAllViews()
   }
 
   override fun onDestroy(owner: LifecycleOwner) {
