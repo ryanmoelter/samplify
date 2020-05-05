@@ -11,12 +11,11 @@ import com.wealthfront.magellan.compose.lifecycle.LifecycleState
 import com.wealthfront.magellan.compose.lifecycle.lifecycle
 import com.wealthfront.magellan.compose.transition.Displayable
 
-abstract class ViewWrapper(@LayoutRes val layoutRes: Int) : Displayable,
-  LifecycleAware,
-  LifecycleOwner {
+abstract class ViewWrapper(
+  @LayoutRes val layoutRes: Int
+) : Displayable, LifecycleAware, LifecycleOwner {
 
-  private val lifecycleHost =
-    LifecycleFSM()
+  private val lifecycleHost = LifecycleFSM()
   override val currentState get() = lifecycleHost.currentState
 
   final override var view: View? = null

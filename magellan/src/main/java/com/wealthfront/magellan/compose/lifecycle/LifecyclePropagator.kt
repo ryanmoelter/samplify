@@ -4,8 +4,7 @@ import android.content.Context
 
 abstract class LifecyclePropagator : LifecycleAware, LifecycleOwner {
 
-  private val lifecycleHost =
-    LifecycleFSM()
+  private val lifecycleHost = LifecycleFSM()
 
   override val currentState get() = lifecycleHost.currentState
 

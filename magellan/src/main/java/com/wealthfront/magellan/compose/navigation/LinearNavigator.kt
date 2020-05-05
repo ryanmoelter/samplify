@@ -52,6 +52,7 @@ class LinearNavigator(
           navigationContainer.removeView(currentView)
         }
         attachToLifecycle(nextNavigable, Shown(context!!))
+        currentNavigable = nextNavigable
       }
     }.let { }
   }

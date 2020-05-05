@@ -17,4 +17,10 @@ class MainActivity : AppCompatActivity() {
     setContentView(R.layout.activity_main)
     rootScreen.attachToActivity(this, R.id.magellanContainer)
   }
+
+  override fun onBackPressed() {
+    if (!rootScreen.backPressed()) {
+      super.onBackPressed()
+    }
+  }
 }

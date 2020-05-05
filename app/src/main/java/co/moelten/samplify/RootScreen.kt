@@ -17,6 +17,8 @@ class RootScreen : Screen(), DelegatedDisplayable {
   var navigator by lifecycle(LinearNavigator { view!! })
 
   override fun onShow(context: Context) {
-    navigator.goTo(NowPlayingScreen())
+    navigator.goTo(HomeScreen(
+      goToNowPlaying = { navigator.goTo(NowPlayingScreen()) }
+    ))
   }
 }

@@ -66,8 +66,6 @@ class LifecycleFSM : LifecycleAware {
 
   private fun onAllListeners(action: (LifecycleAware) -> Unit) = listeners.forEach(action)
 
-  private fun onAllListenersUntilTrue(action: (LifecycleAware) -> Boolean): Boolean {
-    listeners.map(action).any { it }
-    TODO("Figure out if this works")
-  }
+  private fun onAllListenersUntilTrue(action: (LifecycleAware) -> Boolean): Boolean =
+    listeners.asSequence().map(action).any { it }
 }
