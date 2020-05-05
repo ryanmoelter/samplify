@@ -39,7 +39,10 @@ allprojects {
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions.allWarningsAsErrors = true
+        kotlinOptions {
+            allWarningsAsErrors = true
+            jvmTarget = "1.8"
+        }
     }
 
     tasks.withType<JavaCompile> {

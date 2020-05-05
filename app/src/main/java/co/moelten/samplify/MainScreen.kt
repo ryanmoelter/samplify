@@ -12,9 +12,11 @@ import co.moelten.samplify.model.Loadable.Loading
 import co.moelten.samplify.model.Loadable.Success
 import co.moelten.samplify.model.mapLoadableValue
 import co.moelten.samplify.spotify.SpotifyRemoteWrapper
+import coil.api.load
 import com.spotify.protocol.types.ImageUri
 import com.spotify.protocol.types.PlayerState
 import com.spotify.protocol.types.Track
+import com.wealthfront.blend.ANIM_DURATION_DEFAULT_MS
 import com.wealthfront.magellan.compose.Screen
 import com.wealthfront.magellan.compose.ViewWrapper
 import com.wealthfront.magellan.compose.coroutine.ShownCoroutineScope
@@ -125,10 +127,14 @@ class MainView(
           .collect { loadableBitmapDrawable ->
             when (loadableBitmapDrawable) {
               is Success -> {
-                nowPlayingAlbumArt!!.setImageDrawable(loadableBitmapDrawable.value)
+                nowPlayingAlbumArt!!.load(loadableBitmapDrawable.value) {
+                  crossfade(ANIM_DURATION_DEFAULT_MS.toInt())
+                }
               }
               is Loading, is Error -> {
-                nowPlayingAlbumArt!!.setImageResource(R.drawable.ic_launcher_background)
+                nowPlayingAlbumArt!!.load(R.drawable.ic_launcher_background) {
+                  crossfade(ANIM_DURATION_DEFAULT_MS.toInt())
+                }
               }
             }.let { }
           }

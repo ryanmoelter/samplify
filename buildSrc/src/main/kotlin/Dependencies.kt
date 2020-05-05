@@ -2,6 +2,7 @@
 import Version.androidTestExtVersion
 import Version.appCompatVersion
 import Version.blendVersion
+import Version.coilVersion
 import Version.constraintLayoutVersion
 import Version.coroutinesVersion
 import Version.daggerVersion
@@ -35,6 +36,7 @@ object Libs {
   val coroutinesAndroid = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
   val lifecycle = "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion"
   val lifecycleCommon = "androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion"
+  val coil = "io.coil-kt:coil:$coilVersion"
 
   val dependencyAnalyzer = "com.vanniktech:gradle-dependency-graph-generator-plugin:$dependencyAnalyzerVersion"
 
@@ -73,6 +75,7 @@ object Version {
   val magellanVersion = "1.1.0"
   val coroutinesVersion = "1.3.5"
   val lifecycleVersion = "2.2.0"
+  val coilVersion = "0.10.1"
 
   val appCompatVersion = "1.1.0"
   val ktxVersion = "1.2.0"

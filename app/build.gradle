@@ -62,6 +62,7 @@ dependencies {
     implementation(Libs.coroutinesAndroid)
     implementation(Libs.lifecycle)
     implementation(Libs.lifecycleCommon)
+    implementation(Libs.coil)
     implementation(Libs.dagger)
     implementation(Libs.gson)
     kapt(Libs.daggerCompiler)
