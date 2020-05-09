@@ -2,7 +2,6 @@ package com.wealthfront.magellan.compose
 
 import android.content.Context
 import android.view.View
-import android.view.View.inflate
 import androidx.annotation.LayoutRes
 import com.wealthfront.magellan.compose.lifecycle.LifecycleAware
 import com.wealthfront.magellan.compose.lifecycle.LifecycleFSM
@@ -27,30 +26,30 @@ abstract class ViewWrapper(
   }
 
   final override fun show(context: Context) {
+    view = View.inflate(context, layoutRes, null)
     lifecycleHost.show(context)
-    view = inflate(context, layoutRes, null)
-    onShow(context)
+    onShow(context, view!!)
   }
 
   final override fun resume(context: Context) {
     lifecycleHost.resume(context)
-    onResume(context)
+    onResume(context, view!!)
   }
 
   final override fun pause(context: Context) {
+    onPause(context, view!!)
     lifecycleHost.pause(context)
-    onPause(context)
   }
 
   final override fun hide(context: Context) {
+    onHide(context, view!!)
     lifecycleHost.hide(context)
-    onHide(context)
+    view = null
   }
 
   final override fun destroy(context: Context) {
-    lifecycleHost.destroy(context)
-    view = null
     onDestroy(context)
+    lifecycleHost.destroy(context)
   }
 
   final override fun backPressed(): Boolean {
@@ -65,13 +64,13 @@ abstract class ViewWrapper(
 
   protected open fun onCreate(context: Context) {}
 
-  protected open fun onShow(context: Context) {}
+  protected open fun onShow(context: Context, view: View) {}
 
-  protected open fun onResume(context: Context) {}
+  protected open fun onResume(context: Context, view: View) {}
 
-  protected open fun onPause(context: Context) {}
+  protected open fun onPause(context: Context, view: View) {}
 
-  protected open fun onHide(context: Context) {}
+  protected open fun onHide(context: Context, view: View) {}
 
   protected open fun onDestroy(context: Context) {}
 

@@ -73,7 +73,7 @@ object Version {
 
   val blendVersion = "0.1.0"
   val magellanVersion = "1.1.0"
-  val coroutinesVersion = "1.3.5"
+  val coroutinesVersion = "1.3.6"
   val lifecycleVersion = "2.2.0"
   val coilVersion = "0.10.1"
 

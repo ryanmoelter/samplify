@@ -1,25 +1,28 @@
 package co.moelten.samplify.spotify
 
 import android.content.Context
-import android.graphics.Bitmap
+import co.moelten.samplify.model.Loadable
+import co.moelten.samplify.model.Loadable.Loading
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.Connector
-import com.spotify.android.appremote.api.PlayerApi
 import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.client.CallResult
 import com.spotify.protocol.client.PendingResult
-import com.spotify.protocol.types.ImageUri
 import com.spotify.protocol.types.PlayerState
-import com.wealthfront.magellan.compose.lifecycle.LifecycleAware
+import com.wealthfront.magellan.compose.coroutine.CreatedCoroutineScope
+import com.wealthfront.magellan.compose.lifecycle.LifecyclePropagator
+import com.wealthfront.magellan.compose.lifecycle.lifecycle
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.sendBlocking
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -35,14 +38,31 @@ const val REDIRECT_URI = "samplify://authenticated"
 @Singleton
 class SpotifyRemoteWrapper @Inject constructor(
   val applicationContext: Context
-) : LifecycleAware {
+) : LifecyclePropagator() {
+
+  private val createdScope by lifecycle(CreatedCoroutineScope())
 
   private val remoteMutex = Mutex()
   private var _appRemote: SpotifyAppRemote? = null
 
-  val player = Player { getAppRemote().playerApi }
+  @OptIn(ExperimentalCoroutinesApi::class)
+  val playerState = MutableStateFlow<Loadable<PlayerState>>(Loading())
 
-  private suspend fun getAppRemote(): SpotifyAppRemote {
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun onShow(context: Context) {
+    createdScope.launch {
+      getPlayerState().collect { playerState: PlayerState ->
+        this@SpotifyRemoteWrapper.playerState.value = Loadable.Success(playerState)
+      }
+    }
+  }
+
+  override fun onHide(context: Context) {
+    SpotifyAppRemote.disconnect(_appRemote)
+    _appRemote = null
+  }
+
+  suspend fun getAppRemote(): SpotifyAppRemote {
     if (_appRemote == null) {
       remoteMutex.withLock {
         if (_appRemote == null) {
@@ -74,48 +94,20 @@ class SpotifyRemoteWrapper @Inject constructor(
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  fun getPlayerState(): Flow<PlayerState> =
+  private fun getPlayerState(): Flow<PlayerState> =
     callbackFlow<PlayerState> {
-      val call = getAppRemote().playerApi.subscribeToPlayerState()
+      val appRemote = getAppRemote()
+      val call = appRemote.playerApi.subscribeToPlayerState()
         .setEventCallback { playerState ->
           sendBlocking(playerState)
         }
         .setErrorCallback { throwable ->
-          cancel(CancellationException("App remote error", throwable))
+          close(CancellationException("App remote error", throwable))
         }
       awaitClose {
-        call.cancelSafely(_appRemote)
+        call.cancelIfConnected(appRemote)
       }
     }.buffer(CONFLATED)
-
-  suspend fun getImage(uri: ImageUri): Bitmap = getAppRemote().imagesApi.getImage(uri).awaitAsync()
-
-  override fun hide(context: Context) {
-    disconnect()
-  }
-
-  fun disconnect() {
-    SpotifyAppRemote.disconnect(_appRemote)
-    _appRemote = null
-  }
-}
-
-class Player(
-  val getPlayerApi: suspend () -> PlayerApi
-) {
-  suspend fun play(uri: String) = getPlayerApi().play(uri).awaitAsync()
-  suspend fun play() = getPlayerApi().resume().awaitAsync()
-  suspend fun pause() = getPlayerApi().pause().awaitAsync()
-  suspend fun next() = getPlayerApi().skipNext().awaitAsync()
-  suspend fun previous() = getPlayerApi().skipPrevious().awaitAsync()
-  suspend fun playOrPause() {
-    val state = getPlayerApi().playerState.awaitAsync()
-    if (state.isPaused) {
-      play()
-    } else {
-      pause()
-    }
-  }
 }
 
 suspend fun <Data> CallResult<Data>.awaitAsync(): Data =
@@ -129,8 +121,8 @@ suspend fun <Data> CallResult<Data>.awaitAsync(): Data =
     cancellableContinuation.invokeOnCancellation { cancel() }
   }
 
-fun PendingResult<*>.cancelSafely(appRemote: SpotifyAppRemote?) {
-  if (appRemote != null && appRemote.isConnected) {
+fun PendingResult<*>.cancelIfConnected(appRemote: SpotifyAppRemote) {
+  if (appRemote.isConnected) {
     cancel()
   }
 }

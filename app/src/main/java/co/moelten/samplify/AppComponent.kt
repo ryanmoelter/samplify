@@ -14,6 +14,8 @@ interface AppComponent {
 
   fun inject(mainActivity: MainActivity)
 
+  fun inject(rootScreen: RootScreen)
+
   fun inject(nowPlayingScreen: NowPlayingScreen)
 }
 
