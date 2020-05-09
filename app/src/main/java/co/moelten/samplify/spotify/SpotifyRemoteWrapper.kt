@@ -7,6 +7,7 @@ import com.spotify.android.appremote.api.Connector
 import com.spotify.android.appremote.api.PlayerApi
 import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.client.CallResult
+import com.spotify.protocol.client.PendingResult
 import com.spotify.protocol.types.ImageUri
 import com.spotify.protocol.types.PlayerState
 import com.wealthfront.magellan.compose.lifecycle.LifecycleAware
@@ -83,7 +84,7 @@ class SpotifyRemoteWrapper @Inject constructor(
           cancel(CancellationException("App remote error", throwable))
         }
       awaitClose {
-        call.cancel()
+        call.cancelSafely(_appRemote)
       }
     }.buffer(CONFLATED)
 
@@ -127,3 +128,9 @@ suspend fun <Data> CallResult<Data>.awaitAsync(): Data =
     }
     cancellableContinuation.invokeOnCancellation { cancel() }
   }
+
+fun PendingResult<*>.cancelSafely(appRemote: SpotifyAppRemote?) {
+  if (appRemote != null && appRemote.isConnected) {
+    cancel()
+  }
+}
