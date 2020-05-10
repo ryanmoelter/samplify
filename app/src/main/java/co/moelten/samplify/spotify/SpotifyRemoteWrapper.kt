@@ -1,6 +1,7 @@
 package co.moelten.samplify.spotify
 
 import android.content.Context
+import co.moelten.samplify.BuildConfig
 import co.moelten.samplify.model.Loadable
 import co.moelten.samplify.model.Loadable.Loading
 import com.spotify.android.appremote.api.ConnectionParams
@@ -32,7 +33,6 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-const val CLIENT_ID = "e7ee02a6c50f4e8b8690bbb6b974db78"
 const val REDIRECT_URI = "samplify://authenticated"
 
 @Singleton
@@ -74,7 +74,7 @@ class SpotifyRemoteWrapper @Inject constructor(
   }
 
   private suspend fun connect(context: Context): SpotifyAppRemote {
-    val connectionParams = ConnectionParams.Builder(CLIENT_ID)
+    val connectionParams = ConnectionParams.Builder(BuildConfig.SPOTIFY_CLIENT_ID)
       .setRedirectUri(REDIRECT_URI)
       .showAuthView(true)
       .build()
