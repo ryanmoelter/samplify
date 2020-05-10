@@ -8,10 +8,11 @@ import com.wealthfront.magellan.compose.navigation.Navigable
 class HomeScreen(
   val goToNowPlaying: () -> Unit
 ) : ViewWrapper(R.layout.home), Navigable {
-  var container: View? by bindView(R.id.container)
 
-  override fun onShow(context: Context) {
-    container!!.setOnClickListener {
+  override fun onShow(context: Context, view: View) {
+    val container: View = view.findViewById(R.id.container)
+
+    container.setOnClickListener {
       goToNowPlaying()
     }
   }

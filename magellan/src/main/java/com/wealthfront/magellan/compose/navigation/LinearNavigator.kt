@@ -3,6 +3,7 @@ package com.wealthfront.magellan.compose.navigation
 import android.content.Context
 import android.view.ViewGroup
 import com.wealthfront.magellan.compose.lifecycle.LifecyclePropagator
+import com.wealthfront.magellan.compose.lifecycle.LifecycleState
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Created
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Destroyed
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Resumed
@@ -10,10 +11,11 @@ import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Shown
 import com.wealthfront.magellan.compose.lifecycle.transitionBetweenStates
 import com.wealthfront.magellan.compose.navigation.Direction.BACKWARD
 import com.wealthfront.magellan.compose.navigation.Direction.FORWARD
-import java.util.*
+import java.util.Deque
+import java.util.LinkedList
 
 class LinearNavigator(
-  val getNavigationContainer: () -> ViewGroup
+  val getNavigationContainerWhenShown: () -> ViewGroup
 ) : LifecyclePropagator() {
   var currentNavigable: Navigable? = null
     private set
@@ -26,46 +28,61 @@ class LinearNavigator(
     is Resumed -> currentState.context
   }
 
+  fun getEarlierOfCurrentStateAndCreated(): LifecycleState = when (currentState) {
+    Destroyed -> Destroyed
+    is Created, is Shown, is Resumed -> Created(context!!)
+  }
+
   fun goTo(nextNavigable: Navigable, direction: Direction = FORWARD) {
+    val currentView = currentNavigable?.let { currentNavigable ->
+      val currentView = currentNavigable.view
+      removeFromLifecycle(currentNavigable, detachedState = when (direction) {
+        FORWARD -> getEarlierOfCurrentStateAndCreated()
+        BACKWARD -> Destroyed
+      })
+      if (direction == FORWARD) {
+        backstack.add(currentNavigable)  // TODO: Allow historyRewriters and other ways of representing the backstack
+      }
+      currentView
+    }
+    attachToLifecycle(nextNavigable, detachedState = when (direction) {
+      FORWARD -> Destroyed
+      BACKWARD -> getEarlierOfCurrentStateAndCreated()
+    })
+    currentNavigable = nextNavigable
     when (currentState) {
-      is Destroyed, is Created -> throw IllegalStateException("Cannot navigate when not shown")
       is Shown, is Resumed -> {
-        val currentView = currentNavigable?.let { currentNavigable ->
-          val currentView = currentNavigable.view!!
-          removeFromLifecycle(currentNavigable, when (direction) {
-            FORWARD -> Created(context!!)
-            BACKWARD -> Destroyed
-          })
-          if (direction == FORWARD) {
-            backstack.add(currentNavigable)  // TODO: Allow historyRewriters and other ways of representing the backstack
-          }
-          currentView
-        }
-        nextNavigable.transitionBetweenStates(when (direction) {
-          FORWARD -> Destroyed
-          BACKWARD -> Created(context!!)
-        }, Shown(context!!))
-        val navigationContainer = getNavigationContainer()
+        val navigationContainer = getNavigationContainerWhenShown()
         navigationContainer.addView(nextNavigable.view!!)
         // TODO: Transition
         if (currentView != null) {
           navigationContainer.removeView(currentView)
         }
-        attachToLifecycle(nextNavigable, Shown(context!!))
-        currentNavigable = nextNavigable
+        Unit
       }
+      is Destroyed, is Created -> { }
     }.let { }
   }
 
-  fun canGoBack() = backstack.isNotEmpty()
+  private fun canGoBack() = backstack.isNotEmpty()
+
+  override fun onCreate(context: Context) {
+    currentNavigable?.transitionBetweenStates(Destroyed, Created(context))
+    backstack.transitionBetweenStates(Destroyed, Created(context))
+  }
+
+  override fun onShow(context: Context) {
+    currentNavigable?.let { currentNavigable ->
+      getNavigationContainerWhenShown().addView(currentNavigable.view!!)
+    }
+  }
 
   override fun onDestroy(context: Context) {
+    currentNavigable?.transitionBetweenStates(Created(context), Destroyed)
     backstack.transitionBetweenStates(Created(context), Destroyed)
   }
 
-  override fun onBackPressed(): Boolean {
-    return currentNavigable?.backPressed() ?: false || goBack()
-  }
+  override fun onBackPressed(): Boolean = currentNavigable?.backPressed() ?: false || goBack()
 
   fun goBack(): Boolean {
     return if (canGoBack()) {
