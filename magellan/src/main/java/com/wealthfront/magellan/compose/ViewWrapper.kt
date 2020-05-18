@@ -2,67 +2,36 @@ package com.wealthfront.magellan.compose
 
 import android.content.Context
 import android.view.View
+import android.view.View.inflate
 import androidx.annotation.LayoutRes
-import com.wealthfront.magellan.compose.lifecycle.LifecycleAware
-import com.wealthfront.magellan.compose.lifecycle.LifecycleFSM
+import androidx.annotation.VisibleForTesting
+import com.wealthfront.magellan.compose.lifecycle.LifecycleComponent
 import com.wealthfront.magellan.compose.lifecycle.LifecycleOwner
-import com.wealthfront.magellan.compose.lifecycle.LifecycleState
 import com.wealthfront.magellan.compose.lifecycle.lifecycle
 import com.wealthfront.magellan.compose.transition.Displayable
 
 abstract class ViewWrapper(
   @LayoutRes val layoutRes: Int
-) : Displayable, LifecycleAware, LifecycleOwner {
+) : Displayable, LifecycleComponent() {
 
-  private val lifecycleHost = LifecycleFSM()
-  override val currentState get() = lifecycleHost.currentState
+  final override var view: View? by lifecycleView { inflate(it, layoutRes, null) }
+    @VisibleForTesting set
 
-  final override var view: View? = null
-    private set
-
-  final override fun create(context: Context) {
-    lifecycleHost.create(context)
-    onCreate(context)
-  }
-
-  final override fun show(context: Context) {
-    view = View.inflate(context, layoutRes, null)
-    lifecycleHost.show(context)
+  final override fun onShow(context: Context) {
     onShow(context, view!!)
   }
 
-  final override fun resume(context: Context) {
-    lifecycleHost.resume(context)
+  final override fun onResume(context: Context) {
     onResume(context, view!!)
   }
 
-  final override fun pause(context: Context) {
+  final override fun onPause(context: Context) {
     onPause(context, view!!)
-    lifecycleHost.pause(context)
   }
 
-  final override fun hide(context: Context) {
+  final override fun onHide(context: Context) {
     onHide(context, view!!)
-    lifecycleHost.hide(context)
-    view = null
   }
-
-  final override fun destroy(context: Context) {
-    onDestroy(context)
-    lifecycleHost.destroy(context)
-  }
-
-  final override fun backPressed(): Boolean {
-    return lifecycleHost.backPressed() || onBackPressed()
-  }
-
-  override fun attachToLifecycle(lifecycleAware: LifecycleAware, detachedState: LifecycleState) =
-    lifecycleHost.attachToLifecycle(lifecycleAware, detachedState)
-
-  override fun removeFromLifecycle(lifecycleAware: LifecycleAware, detachedState: LifecycleState) =
-    lifecycleHost.removeFromLifecycle(lifecycleAware, detachedState)
-
-  protected open fun onCreate(context: Context) {}
 
   protected open fun onShow(context: Context, view: View) {}
 
@@ -71,24 +40,20 @@ abstract class ViewWrapper(
   protected open fun onPause(context: Context, view: View) {}
 
   protected open fun onHide(context: Context, view: View) {}
-
-  protected open fun onDestroy(context: Context) {}
-
-  protected open fun onBackPressed(): Boolean = false
 }
 
 // An easy wrapper to keep using customViews
 class CustomViewWrapper<CustomView : View>(
   val createView: (Context) -> CustomView
-) : LifecycleAware {
+) : LifecycleComponent() {
   var view: CustomView? = null
-    protected set
+    private set
 
-  override fun show(context: Context) {
+  override fun onShow(context: Context) {
     view = createView(context)
   }
 
-  override fun hide(context: Context) {
+  override fun onHide(context: Context) {
     view = null
   }
 }

@@ -4,7 +4,7 @@ import android.content.Context
 import android.view.View
 import androidx.annotation.IdRes
 import com.wealthfront.magellan.compose.ViewWrapper
-import com.wealthfront.magellan.compose.lifecycle.LifecycleAware
+import com.wealthfront.magellan.compose.lifecycle.LifecycleComponent
 import com.wealthfront.magellan.compose.lifecycle.lifecycle
 
 fun <T : View> ViewWrapper.bindView(@IdRes res: Int) =
@@ -13,7 +13,7 @@ fun <T : View> ViewWrapper.bindView(@IdRes res: Int) =
 class MutableBindViewDelegate<T : View>(
   val viewWrapper: ViewWrapper,
   @IdRes val id: Int
-) : LifecycleAware {
+) : LifecycleComponent() {
 
   var cachedView: T? = null
     get() {
@@ -24,7 +24,7 @@ class MutableBindViewDelegate<T : View>(
     }
     private set
 
-  override fun hide(context: Context) {
+  override fun onHide(context: Context) {
     cachedView = null
   }
 }

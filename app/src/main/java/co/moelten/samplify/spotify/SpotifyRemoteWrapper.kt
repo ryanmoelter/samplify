@@ -11,7 +11,7 @@ import com.spotify.protocol.client.CallResult
 import com.spotify.protocol.client.PendingResult
 import com.spotify.protocol.types.PlayerState
 import com.wealthfront.magellan.compose.coroutine.CreatedCoroutineScope
-import com.wealthfront.magellan.compose.lifecycle.LifecyclePropagator
+import com.wealthfront.magellan.compose.lifecycle.LifecycleComponent
 import com.wealthfront.magellan.compose.lifecycle.lifecycle
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -38,7 +38,7 @@ const val REDIRECT_URI = "samplify://authenticated"
 @Singleton
 class SpotifyRemoteWrapper @Inject constructor(
   val applicationContext: Context
-) : LifecyclePropagator() {
+) : LifecycleComponent() {
 
   private val createdScope by lifecycle(CreatedCoroutineScope())
 

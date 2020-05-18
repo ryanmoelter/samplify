@@ -2,13 +2,12 @@ package com.wealthfront.magellan.compose.navigation
 
 import android.content.Context
 import android.view.ViewGroup
-import com.wealthfront.magellan.compose.lifecycle.LifecyclePropagator
+import com.wealthfront.magellan.compose.lifecycle.LifecycleComponent
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Created
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Destroyed
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Resumed
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Shown
-import com.wealthfront.magellan.compose.lifecycle.transitionBetweenStates
 import com.wealthfront.magellan.compose.navigation.Direction.BACKWARD
 import com.wealthfront.magellan.compose.navigation.Direction.FORWARD
 import java.util.Deque
@@ -16,7 +15,7 @@ import java.util.LinkedList
 
 class LinearNavigator(
   val getNavigationContainerWhenShown: () -> ViewGroup
-) : LifecyclePropagator() {
+) : LifecycleComponent() {
   var currentNavigable: Navigable? = null
     private set
 
@@ -45,10 +44,7 @@ class LinearNavigator(
       }
       currentView
     }
-    attachToLifecycle(nextNavigable, detachedState = when (direction) {
-      FORWARD -> Destroyed
-      BACKWARD -> getEarlierOfCurrentStateAndCreated()
-    })
+    attachToLifecycle(nextNavigable)
     currentNavigable = nextNavigable
     when (currentState) {
       is Shown, is Resumed -> {
@@ -67,8 +63,7 @@ class LinearNavigator(
   private fun canGoBack() = backstack.isNotEmpty()
 
   override fun onCreate(context: Context) {
-    currentNavigable?.transitionBetweenStates(Destroyed, Created(context))
-    backstack.transitionBetweenStates(Destroyed, Created(context))
+    backstack.forEach { it.currentState = Created(context) }
   }
 
   override fun onShow(context: Context) {
@@ -78,8 +73,7 @@ class LinearNavigator(
   }
 
   override fun onDestroy(context: Context) {
-    currentNavigable?.transitionBetweenStates(Created(context), Destroyed)
-    backstack.transitionBetweenStates(Created(context), Destroyed)
+    backstack.forEach { it.currentState = Destroyed }
   }
 
   override fun onBackPressed(): Boolean = currentNavigable?.backPressed() ?: false || goBack()
