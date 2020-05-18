@@ -12,7 +12,7 @@ import com.spotify.protocol.client.PendingResult
 import com.spotify.protocol.types.PlayerState
 import com.wealthfront.magellan.compose.coroutine.CreatedCoroutineScope
 import com.wealthfront.magellan.compose.lifecycle.LifecycleComponent
-import com.wealthfront.magellan.compose.lifecycle.lifecycle
+import com.wealthfront.magellan.compose.lifecycle.lifecycleAttached
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel.Factory.CONFLATED
@@ -40,7 +40,7 @@ class SpotifyRemoteWrapper @Inject constructor(
   val applicationContext: Context
 ) : LifecycleComponent() {
 
-  private val createdScope by lifecycle(CreatedCoroutineScope())
+  private val createdScope by lifecycleAttached(CreatedCoroutineScope())
 
   private val remoteMutex = Mutex()
   private var _appRemote: SpotifyAppRemote? = null

@@ -3,22 +3,23 @@ package co.moelten.samplify
 import android.content.Context
 import android.view.View
 import androidx.annotation.IdRes
-import com.wealthfront.magellan.compose.ViewWrapper
 import com.wealthfront.magellan.compose.lifecycle.LifecycleComponent
-import com.wealthfront.magellan.compose.lifecycle.lifecycle
+import com.wealthfront.magellan.compose.lifecycle.LifecycleOwner
+import com.wealthfront.magellan.compose.lifecycle.lifecycleAttached
+import com.wealthfront.magellan.compose.transition.Displayable
 
-fun <T : View> ViewWrapper.bindView(@IdRes res: Int) =
-  lifecycle(MutableBindViewDelegate<T>(this, res)) { it.cachedView }
+fun <T : View, Displayed> Displayed.bindView(@IdRes res: Int) where Displayed : Displayable, Displayed : LifecycleOwner =
+  lifecycleAttached(MutableBindViewDelegate<T>(this, res)) { it.cachedView }
 
 class MutableBindViewDelegate<T : View>(
-  val viewWrapper: ViewWrapper,
+  val displayable: Displayable,
   @IdRes val id: Int
 ) : LifecycleComponent() {
 
   var cachedView: T? = null
     get() {
       if (field == null) {
-        field = viewWrapper.view?.findViewById<T>(id)
+        field = displayable.view?.findViewById<T>(id)
       }
       return field
     }

@@ -13,17 +13,20 @@ import co.moelten.samplify.model.mapLoadableValue
 import co.moelten.samplify.spotify.NowPlayingFacade
 import coil.api.load
 import com.wealthfront.blend.ANIM_DURATION_DEFAULT_MS
-import com.wealthfront.magellan.compose.ViewWrapper
+import com.wealthfront.magellan.compose.Screen
 import com.wealthfront.magellan.compose.coroutine.ShownCoroutineScope
-import com.wealthfront.magellan.compose.lifecycle.lifecycle
+import com.wealthfront.magellan.compose.lifecycle.lifecycleAttached
+import com.wealthfront.magellan.compose.lifecycleAttachedView
 import com.wealthfront.magellan.compose.navigation.Navigable
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class NowPlayingScreen : ViewWrapper(R.layout.now_playing), Navigable {
+class NowPlayingScreen : Screen(), Navigable {
 
-  private val shownScope by lifecycle(ShownCoroutineScope())
+  override val view: View? by lifecycleAttachedView(R.layout.now_playing)
+
+  private val shownScope by lifecycleAttached(ShownCoroutineScope())
 
   @Inject
   lateinit var nowPlayingFacade: NowPlayingFacade
@@ -32,9 +35,9 @@ class NowPlayingScreen : ViewWrapper(R.layout.now_playing), Navigable {
     injector?.inject(this)
   }
 
-  override fun onShow(context: Context, view: View) {
-    shownScope.launch { subscribeToTrackUpdates(view) }
-    shownScope.launch { subscribeToAlbumArtUpdates(view) }
+  override fun onShow(context: Context) {
+    shownScope.launch { subscribeToTrackUpdates(view!!) }
+    shownScope.launch { subscribeToAlbumArtUpdates(view!!) }
   }
 
   private suspend fun subscribeToTrackUpdates(view: View) {

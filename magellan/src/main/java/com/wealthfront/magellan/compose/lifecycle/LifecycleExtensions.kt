@@ -2,7 +2,7 @@ package com.wealthfront.magellan.compose.lifecycle
 
 import kotlin.reflect.KProperty
 
-fun <CustomLifecycleAware : LifecycleAware, PropertyType> LifecycleOwner.lifecycle(
+fun <CustomLifecycleAware : LifecycleAware, PropertyType> LifecycleOwner.lifecycleAttached(
   lifecycleAware: CustomLifecycleAware,
   getter: (CustomLifecycleAware) -> PropertyType
 ): Lifecycle<CustomLifecycleAware, PropertyType> {
@@ -13,7 +13,7 @@ fun <CustomLifecycleAware : LifecycleAware, PropertyType> LifecycleOwner.lifecyc
   )
 }
 
-fun <CustomLifecycleAware : LifecycleAware> LifecycleOwner.lifecycle(
+fun <CustomLifecycleAware : LifecycleAware> LifecycleOwner.lifecycleAttached(
   lifecycleAware: CustomLifecycleAware
 ): Lifecycle<CustomLifecycleAware, CustomLifecycleAware> {
   return Lifecycle(
@@ -46,7 +46,7 @@ class Lifecycle<CustomLifecycleAware : LifecycleAware, PropertyType>(
   }
 }
 
-fun <CustomLifecycleAware : LifecycleAware> LifecycleOwner.lateinitLifecycle(): LateinitLifecycle<CustomLifecycleAware> {
+fun <CustomLifecycleAware : LifecycleAware> LifecycleOwner.lateinitLifecycleAttached(): LateinitLifecycle<CustomLifecycleAware> {
   return LateinitLifecycle(this)
 }
 
