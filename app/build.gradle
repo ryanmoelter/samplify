@@ -22,6 +22,8 @@ android {
                 includeCompileClasspath = true
             }
         }
+
+        buildConfigField("String", "SPOTIFY_CLIENT_ID", spotifyClientId)
     }
 
     buildTypes {
