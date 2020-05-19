@@ -10,9 +10,9 @@ import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Created
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Destroyed
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Resumed
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Shown
-import com.wealthfront.magellan.compose.navigation.Navigable
+import com.wealthfront.magellan.compose.transition.Displayable
 
-fun Navigable.attachToActivity(
+fun Displayable.attachToActivity(
   context: ComponentActivity,
   @IdRes containerRes: Int
 ) {
@@ -20,7 +20,7 @@ fun Navigable.attachToActivity(
 }
 
 class ActivityLifecycleAdapter(
-  private val navigable: Navigable,
+  private val navigable: Displayable,
   private val context: Activity,
   private val containerRes: Int
 ) : DefaultLifecycleObserver {

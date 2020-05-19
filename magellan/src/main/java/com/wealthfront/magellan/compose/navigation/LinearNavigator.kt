@@ -1,7 +1,10 @@
 package com.wealthfront.magellan.compose.navigation
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.content.Context
 import android.view.ViewGroup
+import androidx.core.view.doOnLayout
 import com.wealthfront.magellan.compose.lifecycle.LifecycleComponent
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Created
@@ -10,6 +13,7 @@ import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Resumed
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Shown
 import com.wealthfront.magellan.compose.navigation.Direction.BACKWARD
 import com.wealthfront.magellan.compose.navigation.Direction.FORWARD
+import com.wealthfront.magellan.compose.transition.DefaultTransition
 import java.util.Deque
 import java.util.LinkedList
 
@@ -33,8 +37,8 @@ class LinearNavigator(
   }
 
   fun goTo(nextNavigable: Navigable, direction: Direction = FORWARD) {
-    val currentView = currentNavigable?.let { currentNavigable ->
-      val currentView = currentNavigable.view
+    val currentTransitionData = currentNavigable?.let { currentNavigable ->
+      val currentTransitionData = currentNavigable.transitionData!!
       removeFromLifecycle(currentNavigable, detachedState = when (direction) {
         FORWARD -> getEarlierOfCurrentStateAndCreated()
         BACKWARD -> Destroyed
@@ -42,19 +46,31 @@ class LinearNavigator(
       if (direction == FORWARD) {
         backstack.add(currentNavigable)  // TODO: Allow historyRewriters and other ways of representing the backstack
       }
-      currentView
+      currentTransitionData
     }
     attachToLifecycle(nextNavigable)
     currentNavigable = nextNavigable
     when (currentState) {
       is Shown, is Resumed -> {
         val navigationContainer = getNavigationContainerWhenShown()
-        navigationContainer.addView(nextNavigable.view!!)
-        // TODO: Transition
-        if (currentView != null) {
-          navigationContainer.removeView(currentView)
+        val nextTransitionData = nextNavigable.transitionData!!
+        navigationContainer.addView(nextTransitionData.frame)
+
+        val transition = when (direction) {
+          FORWARD -> nextNavigable.preferredTransition ?: DefaultTransition()
+          BACKWARD -> currentTransitionData?.preferredTransition ?: DefaultTransition()
         }
-        Unit
+        nextNavigable.view!!.doOnLayout {
+          val animator = transition.createAnimator(currentTransitionData, nextTransitionData, direction)
+          animator.addListener(object: AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator?) {
+              if (currentTransitionData != null) {
+                navigationContainer.removeView(currentTransitionData.frame)
+              }
+            }
+          })
+          animator.start()
+        }
       }
       is Destroyed, is Created -> { }
     }.let { }

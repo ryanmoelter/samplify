@@ -3,8 +3,10 @@ package co.moelten.samplify
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.children
 import co.moelten.samplify.AppComponentProvider.injector
 import co.moelten.samplify.model.Loadable.Error
 import co.moelten.samplify.model.Loadable.Loading
@@ -25,6 +27,8 @@ import javax.inject.Inject
 class NowPlayingScreen : Screen(), Navigable {
 
   override val view: View? by lifecycleAttachedView(R.layout.now_playing)
+  override val transitionElements: List<View>?
+    get() = view?.findViewById<ViewGroup>(R.id.container)?.children?.toList()
 
   private val shownScope by lifecycleAttached(ShownCoroutineScope())
 
