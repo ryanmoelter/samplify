@@ -6,21 +6,22 @@ import com.wealthfront.magellan.compose.navigation.Direction
 
 /**
  * Define a transition (animation) between two screens. By default, transitions are implemented by
- * [DefaultTransition]. You can either set a different default one when building your Navigator,
+ * [StaggeredHorizontalTransition]. You can either set a different default one when building your Navigator,
  * set a screen's preferred entry/back transition using [Displayable.preferredTransition], or
  * override a particular transition with (TBD).
  */
 interface NavigationTransition {
   /**
-   * Animate between 2 [Displayable]s representing screens.
+   * Animate between 2 [TransitionData] representing screens. The [direction] determines whether we're
+   * going from [behind] to [front] ([Direction.FORWARD]) or [front] to [behind] ([Direction.BACKWARD]).
    *
-   * @param from the view of the screen we are coming from
-   * @param to the view of the screen we are going to
+   * @param behind the [TransitionData] of the screen that comes before the other in the backstack
+   * @param front the [TransitionData] of the screen that comes after in the backstack
    * @param direction the direction of the navigation, see [Direction]
    */
   fun createAnimator(
-    from: TransitionData?,
-    to: TransitionData,
+    behind: TransitionData?,
+    front: TransitionData,
     direction: Direction
   ): Animator
 }

@@ -13,7 +13,7 @@ import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Resumed
 import com.wealthfront.magellan.compose.lifecycle.LifecycleState.Shown
 import com.wealthfront.magellan.compose.navigation.Direction.BACKWARD
 import com.wealthfront.magellan.compose.navigation.Direction.FORWARD
-import com.wealthfront.magellan.compose.transition.DefaultTransition
+import com.wealthfront.magellan.compose.transition.StaggeredHorizontalTransition
 import java.util.Deque
 import java.util.LinkedList
 
@@ -54,11 +54,14 @@ class LinearNavigator(
       is Shown, is Resumed -> {
         val navigationContainer = getNavigationContainerWhenShown()
         val nextTransitionData = nextNavigable.transitionData!!
-        navigationContainer.addView(nextTransitionData.frame)
+        navigationContainer.addView(nextTransitionData.frame, when (direction) {
+          FORWARD -> navigationContainer.childCount
+          BACKWARD -> 0
+        })
 
         val transition = when (direction) {
-          FORWARD -> nextNavigable.preferredTransition ?: DefaultTransition()
-          BACKWARD -> currentTransitionData?.preferredTransition ?: DefaultTransition()
+          FORWARD -> nextNavigable.preferredTransition ?: StaggeredHorizontalTransition()
+          BACKWARD -> currentTransitionData?.preferredTransition ?: StaggeredHorizontalTransition()
         }
         nextNavigable.view!!.doOnLayout {
           val animator = transition.createAnimator(currentTransitionData, nextTransitionData, direction)

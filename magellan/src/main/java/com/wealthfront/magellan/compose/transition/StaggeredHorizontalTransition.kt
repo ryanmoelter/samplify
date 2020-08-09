@@ -5,25 +5,25 @@ import com.wealthfront.blend.Blend
 import com.wealthfront.magellan.compose.navigation.Direction
 import java.util.concurrent.TimeUnit.MILLISECONDS
 
-class DefaultTransition : NavigationTransition {
+class StaggeredHorizontalTransition : NavigationTransition {
   val blend = Blend()
 
   override fun createAnimator(
-    from: TransitionData?,
-    to: TransitionData,
+    behind: TransitionData?,
+    front: TransitionData,
     direction: Direction
   ): Animator {
-    val fromElements = from?.elements ?: emptyList()
+    val fromElements = behind?.elements ?: emptyList()
 
-    // val startingTranslationOut = 0f
+    // TODO: Fix this for behind/front logic
     val targetTranslationOut = when (direction) {
-      Direction.FORWARD -> -(from?.frame?.width ?: 0)
-      Direction.BACKWARD -> from!!.frame.width
+      Direction.FORWARD -> -(behind?.frame?.width ?: 0)
+      Direction.BACKWARD -> behind!!.frame.width
     }.toFloat()
 
     val startingTranslationIn = when (direction) {
-      Direction.FORWARD -> to.frame.width
-      Direction.BACKWARD -> -to.frame.width
+      Direction.FORWARD -> front.frame.width
+      Direction.BACKWARD -> -front.frame.width
     }.toFloat()
     val targetTranslationIn = 0f
 
@@ -33,15 +33,15 @@ class DefaultTransition : NavigationTransition {
       0
     }.toLong()
 
-    val toStaggerTimeMillis = if (to.elements.isNotEmpty()) {
-      100 / to.elements.size
+    val toStaggerTimeMillis = if (front.elements.isNotEmpty()) {
+      100 / front.elements.size
     } else {
       0
     }.toLong()
 
     return blend {
       immediate()
-      target(to.elements).animations {
+      target(front.elements).animations {
         translationX(startingTranslationIn)
       }
     }.then {
@@ -52,7 +52,7 @@ class DefaultTransition : NavigationTransition {
       }
     }.with {
       startDelay(50, MILLISECONDS)
-      stagger(to.elements, toStaggerTimeMillis, MILLISECONDS) { currentView ->
+      stagger(front.elements, toStaggerTimeMillis, MILLISECONDS) { currentView ->
         target(currentView).animations {
           translationX(targetTranslationIn)
         }
