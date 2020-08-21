@@ -13,6 +13,8 @@ dependencies {
     implementation(Libs.coroutinesAndroid)
     implementation(Libs.lifecycle)
     implementation(Libs.lifecycleCommon)
+    implementation(Libs.blend)
+    implementation(Libs.ktx)
 
     testImplementation(Libs.mockitoCore)
     testImplementation(Libs.junit)

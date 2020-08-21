@@ -1,36 +1,35 @@
 package com.wealthfront.magellan.compose.coroutine
 
 import android.content.Context
-import com.wealthfront.magellan.compose.lifecycle.LifecycleAware
+import com.wealthfront.magellan.compose.lifecycle.LifecycleComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.CoroutineContext
 
-class ShownCoroutineScope : LifecycleAware, CoroutineScope {
+class ShownCoroutineScope : LifecycleComponent(), CoroutineScope {
   private var job = SupervisorJob().apply { cancel(CancellationException("Not shown yet")) }
   override val coroutineContext: CoroutineContext get() = job + Dispatchers.Main
 
-  override fun show(context: Context) {
+  override fun onShow(context: Context) {
     job = SupervisorJob()
   }
 
-  override fun hide(context: Context) {
+  override fun onHide(context: Context) {
     job.cancel(CancellationException("Hidden"))
   }
 }
 
-class CreatedCoroutineScope : LifecycleAware, CoroutineScope {
+class CreatedCoroutineScope : LifecycleComponent(), CoroutineScope {
   private var job = SupervisorJob().apply { cancel(CancellationException("Not created yet")) }
   override val coroutineContext: CoroutineContext get() = job + Dispatchers.Main
 
-  override fun create(context: Context) {
+  override fun onCreate(context: Context) {
     job = SupervisorJob()
   }
 
-  override fun destroy(context: Context) {
+  override fun onDestroy(context: Context) {
     job.cancel(CancellationException("Destroyed"))
   }
 }
